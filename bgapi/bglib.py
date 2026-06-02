@@ -171,7 +171,10 @@ class BGApiConnHandler(threading.Thread):
                     # Received response, but not waiting for one. This may
                     # happen if we receive a response to our earlier command
                     # too late.
-                    response = BGResponse(apicmdevt, params)
+                    try:
+                        response = BGResponse(apicmdevt, params)
+                    except TypeError:
+                        continue
                     logger.warning("Received unexpected response '%s'", response)
             else:
                 # Got event
