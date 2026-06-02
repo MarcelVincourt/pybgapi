@@ -158,7 +158,11 @@ class BGApiConnHandler(threading.Thread):
                 # Stop flag set while reading payload
                 continue
 
-            (apicmdevt, headers, params) = self.deser.parse(header, payload, fromHost=False)
+            try:
+                (apicmdevt, headers, params) = self.deser.parse(header, payload, fromHost=False)
+            except serdeser.DeserializerEventMissingError:
+                continue
+
 
             if cmdevt == serdeser.MSG_COMMAND:
                 if self.waiting_response.is_set():
@@ -171,7 +175,10 @@ class BGApiConnHandler(threading.Thread):
                     logger.warning("Received unexpected response '%s'", response)
             else:
                 # Got event
-                self.event_handler(BGEvent(apicmdevt, params))
+                try:
+                    self.event_handler(BGEvent(apicmdevt, params))
+                except TypeError:
+                    continue
 
     def stop(self):
         self.stop_flag.set()

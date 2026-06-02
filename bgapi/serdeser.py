@@ -223,7 +223,10 @@ class Deserializer(object):
         apidoc_name = api.name
 
         if cmdevt == MSG_COMMAND:
-            cmdevt = api[classIndex].commands[cmdEvtIndex]
+            try:
+                cmdevt = api[classIndex].commands[cmdEvtIndex]
+            except KeyError:
+                raise DeserializerEventMissingError(classIndex, cmdEvtIndex)
             if fromHost:
                 apiparams = cmdevt.params
                 apidoc_name += "_cmd"
@@ -301,7 +304,11 @@ class Deserializer(object):
                     apidoc_name, len(payload) - pos)
             payload = payload[:pos]
 
-        vals = struct.unpack("<%s" % pack_format, payload)
+        try:
+            vals = struct.unpack("<%s" % pack_format, payload)
+        except struct.error:
+            return (None, None, None)
+
 
         params = list(vals)
 
